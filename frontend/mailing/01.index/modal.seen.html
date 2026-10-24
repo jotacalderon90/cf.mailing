@@ -1,0 +1,44 @@
+
+  <!-- Modal para notificar -->
+  <div class="modal fade" 
+    id="mdSeen" 
+    tabindex="-1" 
+    aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+				<div class="modal-header border-0 pb-0" :class="modal.data.notify.type === 'error' ? 'bg-danger text-white' : 'bg-success text-white'">
+					<h5 class="modal-title d-flex align-items-center">
+						<i :class="modal.data.notify.type === 'error' ? 'fa fa-exclamation-circle' : 'fa fa-check-circle'" class="me-2"></i>
+						Registros de visualización
+					</h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body pt-2 table-responsive">
+          
+          <table class="table">
+            <thead>
+              <tr>
+                <th>IP</th>
+                <th>Fecha</th>
+                <th>User-Agent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in mailing.seen">
+                <td>{{row.headers['x-real-ip']}}</td>
+                <td>{{row.created_formatted}}</td>
+                <td>{{row.headers['user-agent']}}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+				</div>
+        <div class="modal-footer border-0 pt-0">
+					<button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">
+            Cerrar
+          </button>
+				</div>
+			</div>
+		</div>
+	</div>
+  

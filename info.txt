@@ -1,0 +1,32 @@
+necesito mejorar frontend y utilidad:
+
+roles: root,mailing
+
+el rol mailing veria solo log de correos enviados con  smtp asociadas, generalmente una
+ademas podria enviar correos usando motor de plantillas
+
+el root gestiona configuraciones smtp
+ademas veria todos los log de correos
+ademas podria enviar correos usando motor de plantillas
+
+urls
+
+/ => sitio privado, es el index de acuerdo a perfil redirecciono (root o mailing)
+/mailing/nuevo => formulario para enviar correo como texto plano o plantilla, ademas define destinatarios, si soon muchos genera muchos documentos internamente o! PODRIA SER CON COPIA OCULTA SI NO REQUIERE PERSONALIZACIÓN
+/mailing/:id => ver el documento, no permite editar, solo eliminar, reenviar
+
+/smtp => crud por admin root, generar linkeo a database pero mas adelante y mejorada bkn
+
+carpeta frontend
+
+main
+message
+mailing/
+	index+js
+	memo
+		form+js
+		document+js
+	smtp+js
+	templates
+	section
+		nav

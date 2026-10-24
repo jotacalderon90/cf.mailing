@@ -1,0 +1,36 @@
+'use strict';
+
+const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
+
+const constants = require('../constants');
+const mailer = require('../mailer');
+
+const { mailing } = require('../_repository/_');
+
+module.exports = {
+  cron: async function () {
+    try {
+      logger.info('Cron start');
+
+      const mailing_to_send = await mailing.collection(
+        { sended: false },
+        { limit: 1, sort: { created: 1 } }
+      );
+
+      for (let i = 0; i < mailing_to_send.length; i++) {
+        const sended = await mailer.send(mailing_to_send[i].config, mailing_to_send[i]);
+        if (sended) {
+          await mailing.update(mailing_to_send[i].id, {
+            sended: true,
+            created: new Date(),
+          });
+        }
+      }
+
+      logger.info('Cron finish');
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Error en cron' + ' ' + constants.error.controlador);
+    }
+  },
+};

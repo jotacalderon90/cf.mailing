@@ -1,0 +1,137 @@
+<!--use:main-->
+
+<!--define:title-->Sistema de Correos<!--/define:title-->
+
+<!--define:head-->
+	<link href="{{data:process.env.HOST_ARCHIVOSPUBLICOS}}/assets/lib/node_modules/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" />
+	<link href="{{data:process.env.HOST_ARCHIVOSPUBLICOS}}/assets/lib/node_modules/summernote/dist/summernote.min.css" rel="stylesheet" />
+<!--/define:head-->
+
+<!--define:script-->
+  <script>
+    const env = '{{data:process.env.NODE_ENV}}';
+    const user_roles = {{data:JSON.stringify(doc.roles)}};
+    const host = "{{data:process.env.HOST}}";
+    const host_database = "{{data:process.env.HOST_DATABASE}}";
+    const timezone = '{{data:process.env.TIMEZONE}}';
+  </script>
+	<script	type="text/javascript" src="{{data:process.env.HOST_ARCHIVOSPUBLICOS}}/assets/lib/node_modules/jquery/dist/jquery.min.js"></script>
+	<script	type="text/javascript" src="{{data:process.env.HOST_ARCHIVOSPUBLICOS}}/assets/lib/node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="{{data:process.env.HOST_ARCHIVOSPUBLICOS}}/assets/lib/node_modules/summernote/dist/summernote.min.js"></script>
+	<script type="text/javascript" src="/mailing/perfil.js"></script>
+	<script type="text/javascript" src="/mailing/menu.js"></script>
+	<script type="text/javascript" src="/mailing/02.form/_.js"></script>
+<!--/define:script-->
+
+<!--define:main-->
+	
+	<!--include:header-->
+	<!--include:modal/_-->
+	
+  <div class="d-flex">
+		<aside class="border border-end bg-body-tertiary min-vh-100 flex-shrink-0 offcanvas-md offcanvas-end" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="width: 300px;">
+      <nav class="nav flex-column px-3 mt-4">
+        <a class="nav-link" href="/">Inicio</a>
+      </nav>
+    </aside>
+		<div class="resizer"></div>
+		<main class="flex-grow-1 px-md-4 mb-4" style="min-width: 0;">
+      
+      <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <h4 class="m-0" v-on:dblclick="mailing.refresh()" title="Doble click para refrescar">
+          <i class="fas fa-envelope me-2 text-primary"></i>Nuevo correo
+        </h4>
+      </div>
+      
+      <div class="form-group">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" placeholder="Para" aria-label="Para" aria-label="Text input with dropdown button" v-model="mailing.newdoc.to" />
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Cargar desde
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <!--<li><a class="dropdown-item" href="#">Rol X</a></li>
+            <li><hr class="dropdown-divider"></li>-->
+            <li><a class="dropdown-item" v-on:click="mailing.loadCorreosEnviados()">Correos enviados</a></li>
+            <li><a class="dropdown-item" v-on:click="mailing.loadSubscritos()">Subscritos</a></li>
+          </ul>
+        </div>
+        
+      </div>
+      <br>
+      
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Asunto del correo" v-model="mailing.newdoc.subject" >
+      </div>
+      <br>
+      
+      <div class="form-group">
+        <label>Tipo de envío</label>
+        <select class="form-control" v-model="mailing.newdoc.type">
+          <option value="template">Plantilla</option>
+          <option value="richtext">Texto Enriquecido</option>
+          <option value="plain">Texto Plano</option>
+        </select>
+      </div>
+      <br>
+      
+      <div v-show="mailing.newdoc.type=='plain'">		
+        <input type="text" class="form-control input-sm" v-model="mailing.newdoc.text" placeholder="Mensaje"/>
+        <br/>
+        <br/>
+      </div>
+      
+      <div v-show="mailing.newdoc.type=='richtext'">	
+        <input type="text" class="form-control" id="mailing_input_richtext" placeholder="Contenido" />	
+        <br/>
+        <br/>
+      </div>
+      
+      <div v-show="mailing.newdoc.type==='template'">
+        <div class="form-group">
+          <label>Seleccione plantilla para enviar mails</label>
+          <select class="form-control" v-model="mailing.newdoc.template" v-on:change="mailing.selectTemplate()">
+            <option v-for="row in mailing.templates">{{row}}</option>
+          </select>
+        </div>
+        <br>
+        <table class="table table-bordered" v-show="mailing.newdoc.metadata">
+          <thead>
+            <tr>
+              <th>Metadata</th>
+              <!--<th>Tipo</th>-->
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in mailing.newdoc.metadata">
+              <td>{{row.label}}</td>
+              <!--<td>
+                <select v-model="row.type" class="form-control input-sm">
+                  <option value="static">Definir valor</option>
+                  <option value="document">Usar valor del usuario</option>
+                </select>
+              </td>-->
+              <td>
+                <input type="text" class="form-control input-sm" v-model="row.value"/><!-- v-show="row.type=='static'"-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <button class="btn btn-info btn-sm" v-on:click="mailing.render()">Renderizar</button>
+        <br>
+        
+        <div id="dvRender"></div>
+        <br>
+      </div>
+      
+      <br>
+      
+      <button class="btn btn-warning btn-sm" v-on:click="mailing.preenviar()">Continuar</button>
+        
+    </main>
+  </div>
+  
+<!--/define:main-->

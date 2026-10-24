@@ -1,0 +1,55 @@
+{
+  "definition": {
+    "openapi": "3.0.0",
+    "info": {
+      "title": "cf.mailing",
+      "version": "1.0.0",
+      "description": "Documentación del backend",
+      "contact": {
+        "name": "Jhonatan Calderón Leiva",
+        "email": "info@jotace.cl"
+      },
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      }
+    },
+    "servers": [
+      {
+        "url": "http://172.27.16.1:2208",
+        "description": "Servidor local"
+      }
+    ],
+    "tags": [
+      {
+        "name": "Default",
+        "description": "Servicios genericos"
+      },
+      {
+        "name": "Core",
+        "description": "API principal del sistema"
+      },
+      {
+        "name": "Vistas",
+        "description": "Vistas del sistema"
+      },
+      {
+        "name": "ApiBase",
+        "description": "API para contar , listar y obtener tags de documentos"
+      },
+      {
+        "name": "ApiCrud",
+        "description": "API para procesos crud para los documentos"
+      },
+      {
+        "name": "ApiAdministracion",
+        "description": "API para administrador"
+      },
+      {
+        "name": "ApiSeen",
+        "description": "API para marcar y ver vistos"
+      }
+    ]
+  },
+  "apis": ["./backend/*.js"]
+}

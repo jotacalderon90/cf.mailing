@@ -1,0 +1,34 @@
+
+  <!-- Modal para filtrar -->
+  <div class="modal fade" 
+    id="mdFilter" 
+    tabindex="-1" 
+    aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+				<div class="modal-header border-0 pb-0" :class="modal.data.notify.type === 'error' ? 'bg-danger text-white' : 'bg-success text-white'">
+					<h5 class="modal-title d-flex align-items-center">
+						<i :class="modal.data.notify.type === 'error' ? 'fa fa-exclamation-circle' : 'fa fa-check-circle'" class="me-2"></i>
+            Filtro de datos
+					</h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body pt-2 table-responsive">
+          
+          <label>To</label>
+					<input class="form-control" type="text" v-model="mailing.filterByField.to" />
+					<br>
+          
+				</div>
+        <div class="modal-footer border-0 pt-0">
+					<button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">
+            Cerrar
+          </button>
+					<button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal" v-on:click="mailing.filter()">
+            Confirmar
+          </button>
+				</div>
+			</div>
+		</div>
+	</div>
+  
