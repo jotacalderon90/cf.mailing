@@ -79,6 +79,33 @@ mailing.prototype.start = async function (parent) {
   this.canAdmin = this.parent.perfil.isAdmin();
   await this.refresh();
   
+  /*********************************/
+  /*20261030:Carga de datos por URL*/
+  /*********************************/
+  
+  const to = urlParams.get('to');
+  if(to && to.trim() !== '') {
+    this.newdoc.to = to;
+  }
+  
+  const subject = urlParams.get('subject');
+  if(subject && subject.trim() !== '') {
+    this.newdoc.subject = subject;
+  }
+  
+  const type = urlParams.get('type');
+  if(type && type.trim() !== '') {
+    this.newdoc.type = type;
+    
+    if(type === 'template') {
+      const template = urlParams.get('template');
+      if(template && template.trim() !== '') {
+        this.newdoc.template = template;
+        await this.selectTemplate();
+      }
+    }
+  }
+  
 }
 
 mailing.prototype.refresh = async function () {
