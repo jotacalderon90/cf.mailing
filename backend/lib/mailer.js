@@ -28,6 +28,7 @@ class self {
       host: config.host,
       port: config.port,
       secure: config.secureconnection,
+      requireTLS: config.requireTLS,
       auth: {
         user: config.user,
         pass: config.password,

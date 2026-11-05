@@ -8,6 +8,7 @@ const config = function () {
   this.doc = {
     host: '',
     secureconnection: false,
+    requireTLS: false,
     port: 0,
     user: '',
     password: '',

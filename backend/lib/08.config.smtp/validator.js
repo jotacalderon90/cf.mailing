@@ -14,6 +14,7 @@ module.exports = {
       password: z.string().min(1, 'Contraseña es obligatoria'),
       from: z.string().optional(),
       bcc: z.string().optional(),
+      requireTLS: z.boolean().default(false),
     }),
   }),
 };
