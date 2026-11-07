@@ -5,7 +5,7 @@ const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
 const constants = require('../constants');
 const mailer = require('../mailer');
 
-const { mailing } = require('../_repository/_');
+const { mailing, smtp } = require('../_repository/_');
 
 module.exports = {
   fncToSend: async function () {
@@ -38,7 +38,8 @@ module.exports = {
     try {
       logger.info('Cron fncToRefreshTemplates start');
       
-      
+      const smtpConfigs = await smtp.collection();
+      console.log(smtpConfigs);
       
       logger.info('Cron fncToRefreshTemplates finish');
     } catch (error) {
