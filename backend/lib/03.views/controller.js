@@ -14,6 +14,7 @@ module.exports = {
       res.render(await view('mailing/01.index/_', req.headers.host), {
         roles: req.user ? req.user.roles : [],
         __hostAccount: domain.getHostAccount(req),
+        __hostArchivosPublicos: domain.getHostArchivosPublicos(req)
       });
     } catch (error) {
       logger.error(error);
@@ -29,6 +30,7 @@ module.exports = {
       res.render(await view('mailing/02.form/_', req.headers.host), {
         roles: req.user ? req.user.roles : [],
         __hostAccount: domain.getHostAccount(req),
+        __hostArchivosPublicos: domain.getHostArchivosPublicos(req)
       });
     } catch (error) {
       logger.error(error);
@@ -44,6 +46,7 @@ module.exports = {
       res.render(await view('mailing/03.config/_', req.headers.host), {
         roles: req.user ? req.user.roles : [],
         __hostAccount: domain.getHostAccount(req),
+        __hostArchivosPublicos: domain.getHostArchivosPublicos(req)
       });
     } catch (error) {
       logger.error(error);

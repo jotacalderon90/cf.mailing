@@ -16,6 +16,8 @@ const redis = require('cl.jotacalderon.cf.framework/lib/redis');
 
 const domain = require('./domain');
 
+const pathTemplates = '/archivosprivados/plantillas-de-correo';
+const apiBase = '/api/integration';
 const ttl = 900;//15min
 
 const getBaseURL = function(host) {
@@ -23,6 +25,15 @@ const getBaseURL = function(host) {
     return 'https://archivosprivados.' + domain.getParentDomain(host);
   } else {
     return process.env.HOST_ARCHIVOSPRIVADOS;
+  }
+}
+
+const getOptions = function(host) {
+  return {
+    headers: {
+      'user-agent': 'cf.mailing',
+      'origin': 'mailing.' + domain.getParentDomain(host)
+    }
   }
 }
 
@@ -37,16 +48,9 @@ module.exports = {
       if (cached) return cached;
     }
     
-    const pathTemplates = '/archivosprivados/plantillas-de-correo';
-    
     const pathEncoded = Buffer.from(pathTemplates, 'utf8').toString('base64');
     
-    const serviceContent = await request.get(getBaseURL(host) + `/api/integration/collection/${pathEncoded}`, {
-      headers: {
-        'user-agent': 'cf.mailing',
-        'origin': 'mailing.' + domain.getParentDomain(host)
-      },
-    });
+    const serviceContent = await request.get(getBaseURL(host) + `${apiBase}/collection/${pathEncoded}`, getOptions(host));
     
     if(serviceContent.data.statusCode === 200) {
       const json = JSON.parse(serviceContent.data.body);
@@ -74,21 +78,14 @@ module.exports = {
       if (cached) return cached;
     }
     
-    const pathTemplate = '/archivosprivados/plantillas-de-correo/' + templateName;
+    const pathEncoded = Buffer.from(pathTemplates + '/' + templateName, 'utf8').toString('base64');
     
-    const pathEncoded = Buffer.from(pathTemplate, 'utf8').toString('base64');
-    
-    const serviceContent = await request.get(getBaseURL(host) + `/api/integration/get/${pathEncoded}`, {
-      headers: {
-        'user-agent': 'cf.mailing',
-        'origin': 'mailing.' + domain.getParentDomain(host)
-      },
-    });
+    const serviceContent = await request.get(getBaseURL(host) + `${apiBase}/get/${pathEncoded}`, getOptions(host));
     
     if(serviceContent.data.statusCode === 200) {
       
       if (redis.client) {
-        redis.set(cacheKey, json.body, ttl);
+        redis.set(cacheKey, serviceContent.data.body, ttl);
       }
 
       return serviceContent.data.body;
