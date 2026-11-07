@@ -8,9 +8,9 @@ const mailer = require('../mailer');
 const { mailing } = require('../_repository/_');
 
 module.exports = {
-  cron: async function () {
+  fncToSend: async function () {
     try {
-      logger.info('Cron start');
+      logger.info('Cron fncToSend start');
 
       const mailing_to_send = await mailing.collection(
         { sended: false },
@@ -27,10 +27,23 @@ module.exports = {
         }
       }
 
-      logger.info('Cron finish');
+      logger.info('Cron fncToSend finish');
     } catch (error) {
       logger.error(error);
-      throw new Error('Error en cron' + ' ' + constants.error.controlador);
+      throw new Error('Error en cron fncToSend ' + constants.error.controlador);
     }
   },
+  
+  fncToRefreshTemplates: async function () {
+    try {
+      logger.info('Cron fncToRefreshTemplates start');
+      
+      
+      
+      logger.info('Cron fncToRefreshTemplates finish');
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Error en cron fncToRefreshTemplates ' + constants.error.controlador);
+    }
+  }
 };
