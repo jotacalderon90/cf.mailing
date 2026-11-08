@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
 const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
 
@@ -39,40 +40,46 @@ module.exports = {
   },
   
   fncToRefreshTemplates: async function () {
+    logger.info('Cron fncToRefreshTemplates start');
     try {
-      logger.info('Cron fncToRefreshTemplates start');
       
-      let smtpConfigs;
-      if(process.env.NODE_ENV === 'production') {
-        smtpConfigs = (await smtp.collection()).map((row)=>{
-          return row.host;
-        });
-      } else {
-        smtpConfigs = [domain.getParentDomain(process.env.TEST_HOST)]
-      }
+      const hosts = process.env.NODE_ENV === 'production'
+      ? (await smtp.collection()).map((row) => row.host)
+      : [domain.getParentDomain(process.env.TEST_HOST)];
       
-      for(let i = 0 ; i < smtpConfigs.length ; i++ ) {
+      const baseDir = path.resolve(process.cwd(), 'frontend/assets/domains');
+      let ok = 0, fail = 0;
+      
+      for (const host of hosts) {
         try {
-          
-          const templateFiles = await templates.collection(smtpConfigs[i]);
-          for ( let x=0; x < templateFiles.length; x++) {
+          const archivos = await templates.collection(host);
+
+          for (const archivo of archivos) {
             try {
-              const templateContent = await templates.read(smtpConfigs[i], templateFiles[x]);
-              
-              await fs.promises.writeFile(process.cwd() + '/frontend/assets/domains/' + smtpConfigs[i] + '/mailing/templates/' + templateFiles[x], templateContent);
-              logger.info('Plantilla ' + templateFiles[x] + ' para el dominio ' + smtpConfigs[i] + ' actualizada correctamente');
-              
+              const contenido = await templates.read(host, archivo);
+              const destino = path.resolve(baseDir, host, 'mailing/templates', archivo);
+
+              if (!destino.startsWith(baseDir + path.sep)) {
+                throw new Error(`Ruta inválida: ${destino}`);
+              }
+
+              await fs.promises.mkdir(path.dirname(destino), { recursive: true });
+              const tmp = destino + '.tmp';
+              await fs.promises.writeFile(tmp, contenido);
+              await fs.promises.rename(tmp, destino);
+
+              ok++;
             } catch (error) {
-              logger.error('Error al refrescar plantilla ' + templateFiles[x] + ' para el dominio ' + smtpConfigs[i]);
+              fail++;
+              logger.error(`Error en plantilla ${archivo} (${host}): ${error.message}`);
             }
           }
-          
         } catch (error) {
-          logger.error('Error al refrescar plantillas para el dominio ' + smtpConfigs[i]);
+          logger.error(`Error en plantillas del dominio ${host}: ${error.message}`);
         }
       }
-      
-      logger.info('Cron fncToRefreshTemplates finish');
+
+      logger.info(`Cron fncToRefreshTemplates finish: ${ok} ok, ${fail} con error`);
     } catch (error) {
       logger.error(error);
       throw new Error('Error en cron fncToRefreshTemplates ' + constants.error.controlador);
