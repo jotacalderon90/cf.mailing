@@ -7,11 +7,13 @@ const constants = require('./constants');
 const validator = require('./validator');
 const service = require('./service');
 
+const domain = require('../domain');
+
 module.exports = {
   collection: async function (req, res) {
     try {
       const respuesta = await service.collection({
-        host: req.headers.host,
+        host: domain.getParentDomain(req.headers.host),
       });
       res.send({ data: respuesta });
     } catch (error) {
@@ -36,7 +38,7 @@ module.exports = {
 
       const respuesta = await service.metadata({
         ...parseResult.data,
-        host: req.headers.host,
+        host: domain.getParentDomain(req.headers.host),
       });
 
       res.send({ data: respuesta });
@@ -62,7 +64,7 @@ module.exports = {
 
       const respuesta = await service.render({
         ...parseResult.data,
-        host: req.headers.host,
+        host: domain.getParentDomain(req.headers.host),
       });
 
       res.send({ data: respuesta });

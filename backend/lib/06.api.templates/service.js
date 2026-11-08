@@ -1,36 +1,27 @@
 'use strict';
 
+const fs = require('fs');
+
 const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
+const render = require('cl.jotacalderon.cf.framework/lib/render');
 
 const constants = require('./constants');
 
-const templates = require('../templates');
+const directory = process.cwd() + '/frontend/';
 
-const getMetadata = function (template) {
-  const rows = [];
-  while (template.indexOf('{{') > -1) {
-    const index1 = template.indexOf('{{');
-    const tmp = template.substring(index1);
-    const index2 = tmp.indexOf('}}');
-    const tempTemplate = tmp.substring(2, index2);
-    rows.push({
-      label: tempTemplate.replace('data:doc.', ''),
-      name: tempTemplate,
-      type: 'static',
-      value: '',
-    });
-    template = template.split('{{' + tempTemplate + '}}').join('metadata');
-  }
-  return rows;
+const getTemplateFolder = function (host) {
+  return 'assets/domains/' + host + '/mailing/templates/';
 };
-
 
 module.exports = {
   collection: async function (input) {
     try {
-      
-      return await templates.collection(input.host);
-      
+      const dir = directory + getTemplateFolder(input.host);
+
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+      const respuesta = entries.filter((dirent) => dirent.isFile()).map((dirent) => dirent.name);
+
+      return respuesta;
     } catch (error) {
       logger.error(error);
       throw new Error(constants.error.rest.collection + ' ' + constants.error.servicio);
@@ -39,11 +30,30 @@ module.exports = {
 
   metadata: async function (input) {
     try {
-      
-      const templateContent = await templates.read(input.host, input.name);
+      const getMetadata = function (template) {
+        const rows = [];
+        while (template.indexOf('{{') > -1) {
+          const index1 = template.indexOf('{{');
+          const tmp = template.substring(index1);
+          const index2 = tmp.indexOf('}}');
+          const tempTemplate = tmp.substring(2, index2);
+          rows.push({
+            label: tempTemplate.replace('data:doc.', ''),
+            name: tempTemplate,
+            type: 'static',
+            value: '',
+          });
+          template = template.split('{{' + tempTemplate + '}}').join('metadata');
+        }
+        return rows;
+      };
 
-      return getMetadata(templateContent);
-      
+      const fileContent = await fs.promises.readFile(
+        directory + getTemplateFolder(input.host) + input.name,
+        'utf8'
+      );
+
+      return getMetadata(fileContent);
     } catch (error) {
       logger.error(error);
       throw new Error(constants.error.rest.metadata + ' ' + constants.error.servicio);
@@ -52,11 +62,18 @@ module.exports = {
 
   render: async function (input) {
     try {
-      
-      const templateContent = await templates.read(input.host, input.name);
+      const domainPath = getTemplateFolder(input.host) + input.name;
 
-      return await templates.render(templateContent, input);
-      
+      const exists = await fs.promises
+        .access(process.cwd() + '/frontend/' + domainPath)
+        .then(() => true)
+        .catch(() => false);
+
+      if (!exists) {
+        throw new Error(constants.error.rest.bad_template + ' ' + domainPath, input);
+      }
+
+      return await render.process(domainPath, input);
     } catch (error) {
       logger.error(error);
       throw new Error(constants.error.rest.render + ' ' + constants.error.servicio);

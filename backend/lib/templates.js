@@ -3,26 +3,20 @@
 /*20261107: 
 Para poder separar mailing de servidor donde esté archivosprivados debo gestionar plantillas de manera independiente, 
 actualmente en docker-compose ingreso los volúmenes pero eso desaparecerá
-esta libreria se conectará a archivosprivados y tendra en local cache una autogestión para el refresco de contenidos
-idealmente por 15 minutos
+esta libreria se conectará a archivosprivados y sera recargada por un cron
 */
 
 const crypto = require('crypto');
 
 const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
 const request = require('cl.jotacalderon.cf.framework/lib/request');
-const render = require('cl.jotacalderon.cf.framework/lib/render');
-const redis = require('cl.jotacalderon.cf.framework/lib/redis');
-
-const domain = require('./domain');
 
 const pathTemplates = '/archivosprivados/plantillas-de-correo';
 const apiBase = '/api/integration';
-const ttl = 900;//15min
 
 const getBaseURL = function(host) {
   if (process.env.NODE_ENV === 'production' && process.env.FRONT_MULTIDOMAIN === '1') {
-    return 'https://archivosprivados.' + domain.getParentDomain(host);
+    return 'https://archivosprivados.' + host;
   } else {
     return process.env.HOST_ARCHIVOSPRIVADOS;
   }
@@ -32,7 +26,7 @@ const getOptions = function(host) {
   return {
     headers: {
       'user-agent': 'cf.mailing',
-      'origin': 'mailing.' + domain.getParentDomain(host)
+      'origin': 'mailing.' + host
     }
   }
 }
@@ -40,13 +34,6 @@ const getOptions = function(host) {
 module.exports = {
   
   collection: async function (host) {
-    
-    const cacheKey = crypto.createHash('md5').update(host).digest('hex');
-    
-    if (redis.client) {
-      const cached = await redis.get(cacheKey);
-      if (cached) return cached;
-    }
     
     const pathEncoded = Buffer.from(pathTemplates, 'utf8').toString('base64');
     
@@ -57,11 +44,6 @@ module.exports = {
       if(json.error) {
         throw new Error(json.error);
       }
-      
-      if (redis.client) {
-        redis.set(cacheKey, json.data, 900);
-      }
-
       return json.data;
     }
     
@@ -71,30 +53,14 @@ module.exports = {
   
   read: async function (host, templateName) {
     
-    const cacheKey = crypto.createHash('md5').update(host + templateName).digest('hex');
-    
-    if (redis.client) {
-      const cached = await redis.get(cacheKey);
-      if (cached) return cached;
-    }
-    
     const pathEncoded = Buffer.from(pathTemplates + '/' + templateName, 'utf8').toString('base64');
     
     const serviceContent = await request.get(getBaseURL(host) + `${apiBase}/get/${pathEncoded}`, getOptions(host));
     
     if(serviceContent.data.statusCode === 200) {
-      
-      if (redis.client) {
-        redis.set(cacheKey, serviceContent.data.body, ttl);
-      }
-
       return serviceContent.data.body;
     }
     
     throw new Error(serviceContent);
-  },
-  
-  render: async function (templateContent, data) {
-    return await render.processTemplate(templateContent, data);
-  } 
+  }
 }

@@ -1,14 +1,14 @@
 'use strict';
 
 const crypto = require('crypto');
-
+const fs = require('fs');
 const { DateTime } = require('luxon');
 
 const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
+const render = require('cl.jotacalderon.cf.framework/lib/render');
 
 const constants = require('./constants');
 
-const templates = require('../templates');
 const unsubscribe = require('../unsubscribe');
 
 const { smtp, mailing } = require('../_repository/_');
@@ -48,9 +48,18 @@ module.exports = {
       if (input.html) {
         newdoc.html = input.html;
       } else if (input.template) {
-        
-        const templateContent = await templates.read('mailing.'+input.host, input.template)
-        newdoc.html = await templates.render(templateContent, input);
+        const domainPath = `assets/domains/${input.host}/mailing/templates/${input.template}`;
+
+        const exists = await fs.promises
+          .access(process.cwd() + '/frontend/' + domainPath)
+          .then(() => true)
+          .catch(() => false);
+
+        if (!exists) {
+          throw new Error(constants.error.rest.bad_template + ' ' + domainPath);
+        }
+
+        newdoc.html = await render.process(domainPath, input);
         
       } else {
         throw new Error(constants.error.rest.bad_content);
