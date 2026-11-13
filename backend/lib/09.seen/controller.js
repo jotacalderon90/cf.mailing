@@ -19,6 +19,12 @@ module.exports = {
         response.APIError(req, res, constants.error.validacion);
         return;
       }
+      
+      //20261113:por llamadas dentro de mailing al crear nuevo y renderizar no existe id
+      if(parseResult.data.hash === '.png'){
+        res.sendFile(process.cwd() + '/frontend/mailing/px.png');
+        return;
+      }
 
       await service.create({
         ...parseResult.data,
