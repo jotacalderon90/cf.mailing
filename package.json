@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "cl.jotacalderon.cf.framework": "1.16.0",
-    "nodemailer": "10.2.1",
+    "nodemailer": "10.5.0",
     "zod": "4.6.7",
     "luxon": "3.7.2",
 		"node-cron": "4.6.0"
