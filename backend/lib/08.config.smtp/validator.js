@@ -15,6 +15,15 @@ module.exports = {
       from: z.string().optional(),
       bcc: z.string().optional(),
       requireTLS: z.boolean().default(false),
-    }),
+      
+      _type: z.enum(["smtp", "oauth2"]).default("smtp"),
+      _file: z.string().optional(),
+    }).refine(
+      (data) => data._type !== "oauth2" || !!data._file,
+      {
+        message: "_file is required when _type is 'oauth2'",
+        path: ["_file"],
+      }
+    )
   }),
 };

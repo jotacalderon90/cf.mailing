@@ -90,6 +90,9 @@ module.exports = {
       newdoc.created = input.created;
       newdoc.created_display = input.created_display;
       newdoc.sended = false;
+      
+      newdoc.tries = [];
+      newdoc.triesCount = 0;
 
       const created = await mongodb.insertOne(name_collection, newdoc);
 
@@ -184,6 +187,7 @@ module.exports = {
 
       let sort = {
         created: -1,
+        updated: -1
       };
 
       if (input.sort_field) {
@@ -197,10 +201,13 @@ module.exports = {
           subject: 1,
           campaign: 1,
           created: 1,
+          updated: 1,
           origin: 1,
           sended: 1,
           seen: 1,
           hash: 1,
+          triesCount: 1,
+          tries: 1
         },
         sort: sort,
         limit: constants.paginator,
@@ -211,6 +218,44 @@ module.exports = {
     } catch (error) {
       logger.error(error);
       throw new Error(constants.error.rest.collection + ' ' + constants.error.repositorio);
+    }
+  },
+  
+  updateTries: async function(id, respuestaMailer) {
+    try {
+      if (!validId.test(id)) {
+        throw new Error('Id inválido');
+      }
+
+      const updated = await mongodb.updateOne(name_collection, id, { 
+        $set: {
+          sended: (respuestaMailer.accepted?.length > 0),
+          updated: new Date()
+        },
+        $push: {
+          tries: {
+            response: respuestaMailer,
+            created: new Date(),
+            success: (respuestaMailer.accepted?.length > 0)
+          }
+        },
+        $inc: { 
+          triesCount: 1 
+        }
+      });
+
+      if (!updated.acknowledged) {
+        logger.error(updated);
+        throw new Error(updated);
+      }
+
+      return true;
+    } catch (error) {
+      if (error.code && error.code === 11000) {
+        throw new AppError(constants.error.duplicate, 409);
+      }
+      logger.error(error);
+      throw new Error(constants.error.rest.update + ' ' + constants.error.repositorio);
     }
   },
 
