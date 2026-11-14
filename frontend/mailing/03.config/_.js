@@ -13,7 +13,9 @@ const config = function () {
     user: '',
     password: '',
     from: '',
-    bcc: ''
+    bcc: '',
+    _type: 'smtp',
+    _file: ''
   };
   
 }

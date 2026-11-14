@@ -21,6 +21,7 @@
 	<!--include:modal/_-->
 	<!--include:mailing/01.index/modal.seen-->
 	<!--include:mailing/01.index/modal.filter-->
+	<!--include:mailing/01.index/modal.tries-->
 	
   <div class="d-flex">
 		<aside class="border border-end bg-body-tertiary min-vh-100 flex-shrink-0 offcanvas-md offcanvas-end" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="width: 300px;">
@@ -82,8 +83,10 @@
                   <th>#</th>
                   <th v-on:dblclick="mailing.sort('to')">Email</th>
                   <th v-on:dblclick="mailing.sort('subject')">Asunto</th>
-                  <th v-on:dblclick="mailing.sort('created')">Fecha</th>
-                  <th class="text-end" v-on:dblclick="mailing.sort('origin')">Origen</th>
+                  <th class="text-left" v-on:dblclick="mailing.sort('origin')">Origen</th>
+                  <th v-on:dblclick="mailing.sort('created')">F. Creación</th>
+                  <th v-on:dblclick="mailing.sort('updated')">F. Actualización</th>
+                  <th class="text-center" v-on:dblclick="mailing.sort('triesCount')">Intentos</th>
                   <th class="text-center" v-on:dblclick="mailing.sort('sended')">Estado</th>
                   <th class="text-center" title="Campaña (grupo de correos relacionados)">C</th>
                   <th class="text.center" v-on:dblclick="mailing.sort('seen')">Visto</th>
@@ -95,9 +98,20 @@
                 <tr v-for="(row,index) in mailing.getCollectionView()" :key="row.id" v-on:dblclick="mailing.selectRegistro(row)" :class="row._class">
                   <td class="text-muted small">{{index+1}}</td>
                   <td>{{row.to}}</td>
-                  <td>{{row.subject}}</td>
-                  <td>{{row.created_formatted}}</td>
-                  <td class="text-end">{{row.origin}}</td>
+                  <td><small>{{row.subject}}</small></td>
+                  <td class="text-left">  
+                    <small>{{row.origin}}</small>
+                  </td>
+                  <td><small>{{row.created_formatted}}</small></td>
+                  <td><small>{{row.updated_formatted}}</small></td>
+                  <td class="text-center">
+                    
+                    <button class="btn btn-sm btn-info" 
+                      :class="(row.triesCount > 2) ? 'btn-danger' : (row.triesCount > 1) ? 'btn-warning' : (row.triesCount <= 1) ? 'btn-success': ''"
+                      v-on:click="mailing.loadTries(row)">
+                      {{row.triesCount}}
+                    </button>
+                  </td>
                   <td class="text-center">
                     <span :class="row.sended ? 'text-success' : 'text-warning'" class="badge rounded-pill bg-soft-primary text-primary border border-primary border-opacity-25 me-1">
                       {{row.sended ? 'Enviado' : 'Pendiente'}}
