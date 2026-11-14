@@ -89,8 +89,10 @@ mailing.prototype.sort = async function(sort_field) {
 }
 
 mailing.prototype.formatToClient = function(row) {
-  const dtUTC = luxon.DateTime.fromISO(row.created, { zone: "utc" });
-  row.created_formatted = dtUTC.setZone(timezone).toFormat('dd/MM/yyyy HH:mm:ss');
+  const createdDtUtc = luxon.DateTime.fromISO(row.created, { zone: "utc" });
+  const updatedDtUtc = luxon.DateTime.fromISO(row.updated, { zone: "utc" });
+  row.created_formatted = createdDtUtc.setZone(timezone).toFormat('dd/MM/yyyy HH:mm:ss');
+  row.updated_formatted = updatedDtUtc.setZone(timezone).toFormat('dd/MM/yyyy HH:mm:ss');
   row.link_host_database = this.host_database.host + '/objetos/mailing/' + row.id;
   return row;
 }
@@ -207,6 +209,31 @@ mailing.prototype.loadSeen = async function(row){
     this.parent.modal.open('mdSeen');
 	} catch (error) {
 		this.parent.loader.active = false;
+		await this.parent.modal.notify(error, 'error');
+		console.error(error);
+	}
+}
+
+mailing.prototype.loadTries = async function(row){
+	try {
+    
+		/*this.parent.loader.active = true;
+		const respuesta = await this.services.loadSeen({
+      hash: row.hash
+    });
+		if (respuesta.error) {
+      throw new Error(respuesta.error);
+    }
+		this.parent.loader.active = false;*/
+    this.tries = row.tries.map((trie)=> {
+      const createdUTC = luxon.DateTime.fromISO(trie.created, { zone: "utc" });
+      trie.created_formatted = createdUTC.setZone(timezone).toFormat('dd/MM/yyyy HH:mm:ss');
+      return trie;
+    });
+    this.tries.sort((a, b) => new Date(a.created) - new Date(b.created));
+    
+    this.parent.modal.open('mdTries');
+	} catch (error) {
 		await this.parent.modal.notify(error, 'error');
 		console.error(error);
 	}

@@ -17,19 +17,21 @@ module.exports = {
     try {
       logger.info('Cron fncToSend start');
 
-      const mailing_to_send = await mailing.collection(
-        { sended: false },
-        { limit: 1, sort: { created: 1 } }
-      );
+      const mailing_to_send = await mailing.collection({ 
+        sended: false 
+      } , { 
+        limit: 1, 
+        sort: { 
+          triesCount: 1, 
+          created: 1 
+        } 
+      });
 
       for (let i = 0; i < mailing_to_send.length; i++) {
-        const sended = await mailer.send(mailing_to_send[i].config, mailing_to_send[i]);
-        if (sended) {
-          await mailing.update(mailing_to_send[i].id, {
-            sended: true,
-            created: new Date(),
-          });
-        }
+        
+        const respuestaMailer = await mailer.send(mailing_to_send[i].config, mailing_to_send[i]);
+        
+        await mailing.updateTries(mailing_to_send[i].id, respuestaMailer);
       }
 
       logger.info('Cron fncToSend finish');

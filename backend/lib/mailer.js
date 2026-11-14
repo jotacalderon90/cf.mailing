@@ -1,6 +1,12 @@
 'use strict';
+
 const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
+
 const nodemailer = require('nodemailer');
+
+const archivosprivadosSmtp = require('./archivosprivados.smtp');
+
+const microsoftSmtp = require('./microsoft.smtp');
 
 class self {
   constructor() {
@@ -11,52 +17,81 @@ class self {
     return `${config.host}:${config.port}:${config.user}`;
   }
 
-  _getTransporter(config) {
+  async _getTransporter(config) {
     const key = this._getCacheKey(config);
 
     if (this._transporters.has(key)) {
       logger.info(`[mailer] reusing transporter for ${key}`);
       return this._transporters.get(key);
     }
+    
+    const auth = {};
+    
+    if (config._type === 'smtp') {
+      auth.user = config.user;
+      auth.pass = config.password;
+    
+    } else if(config.type === 'oauth2') {
+      const smtpOauth = await archivosprivadosSmtp.getConfig(config._domain, config._file);
+      if(smtpOauth === null) {
+        throw new Error('smtpOauth es null, revisar dominio ' + config._domain + ' archivo ' + config._file);
+      }
+      
+      auth.type = 'OAuth2';
+      auth.user = config.user;
+      auth.provisionCallback = (user, renew, callback) => {
+        if (config._file !== 'microsoft-smtp.json') {
+          return callback(new Error('config._file no soportado: ' + config._file));
+        }
+          
+        microsoftSmtp
+          .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
+          .then(token => callback(null, token))
+          .catch(err => callback(err));
+      };
+    }
 
     logger.info(`[mailer] creating transporter for ${key}`);
 
     const transporter = nodemailer.createTransport({
-      pool: true,
-      maxConnections: 5,
+      pool: false,
+      maxConnections: 1,
       socketTimeout: 30000,
       host: config.host,
       port: config.port,
       secure: config.secureconnection,
       requireTLS: config.requireTLS,
-      auth: {
-        user: config.user,
-        pass: config.password,
-      },
+      auth: auth,
       tls: {
         rejectUnauthorized: process.env.NODE_ENV === 'production',
       },
     });
+    
+    await transporter.verify();
+    logger.info('transporter OK!');
 
     this._transporters.set(key, transporter);
     return transporter;
   }
-
+  
   async send(config, body) {
     try {
       body.bcc = config.bcc;
       body.from = config.from;
-
-      const transporter = this._getTransporter(config);
+      
+      const transporter = await this._getTransporter(config);
+      
       const response = await transporter.sendMail(body);
-
       logger.info(response);
-      return true;
+      
+      return response;
+
     } catch (error) {
       logger.error(error);
       logger.error(config);
       logger.error(body);
-      return false;
+      
+      return error;
     }
   }
 

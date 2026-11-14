@@ -26,6 +26,7 @@ module.exports = {
       const newdoc = {};
 
       newdoc.config = docSMTP[0].config;
+      newdoc.config._domain = input.host;//20261113:se agrega domain en config para uso interno en oauth2
 
       newdoc.to = input.email || input.to;
       input.unsubscribe = unsubscribe.encrypt(newdoc.to);
