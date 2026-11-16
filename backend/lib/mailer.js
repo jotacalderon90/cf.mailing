@@ -46,7 +46,7 @@ class self {
           
         microsoftSmtp
           .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
-          .then(token => callback(null, token))
+          .then(token => callback(null, token.accessToken, token.expires))
           .catch(err => callback(err));
       };
     }

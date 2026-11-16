@@ -18,8 +18,14 @@ module.exports = {
     );
 
     const data = await res.json();
-    if (!data.access_token) throw new Error(JSON.stringify(data));
     
-    return data.access_token;
+    if (!res.ok || !data.access_token) {
+      throw new Error(JSON.stringify(data));
+    }
+    
+    return {
+      accessToken: data.access_token,
+      expires: Date.now() + (data.expires_in * 1000)
+    };
   }
 }
