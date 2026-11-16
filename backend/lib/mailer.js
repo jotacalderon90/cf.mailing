@@ -40,14 +40,32 @@ class self {
       auth.type = 'OAuth2';
       auth.user = config.user;
       auth.provisionCallback = (user, renew, callback) => {
+        
+        console.log('[OAuth2] provisionCallback INVOCADO', {
+          user,
+          renew
+        });
+        
         if (config._file !== 'microsoft-smtp.json') {
           return callback(new Error('config._file no soportado: ' + config._file));
         }
           
         microsoftSmtp
           .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
-          .then(token => callback(null, token.accessToken, token.expires))
-          .catch(err => callback(err));
+          //.then(token => callback(null, token.accessToken, token.expires))
+          //.catch(err => callback(err));
+          .then(token => {
+            console.log('[OAuth2] Token obtenido:', {
+              isString: typeof token === 'string',
+              length: token?.length
+            });
+
+            callback(null, token);
+          })
+          .catch(err => {
+            console.error('[OAuth2] Error:', err.message);
+            callback(err);
+          });
       };
     }
 
