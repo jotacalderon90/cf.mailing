@@ -65,6 +65,8 @@ class self {
       tls: {
         rejectUnauthorized: process.env.NODE_ENV === 'production',
       },
+      logger: true,   // agregar aquí
+      debug: true,    // agregar aquí
     });
     
     await transporter.verify();
