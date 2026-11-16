@@ -32,41 +32,9 @@ class self {
       auth.pass = config.password;
     
     } else if(config.type === 'oauth2') {
-      const smtpOauth = await archivosprivadosSmtp.getConfig(config._domain, config._file);
-      if(smtpOauth === null) {
-        throw new Error('smtpOauth es null, revisar dominio ' + config._domain + ' archivo ' + config._file);
-      }
-      
       auth.type = 'OAuth2';
       auth.user = config.user;
-      auth.provisionCallback = (user, renew, callback) => {
-        
-        console.log('[OAuth2] provisionCallback INVOCADO', {
-          user,
-          renew
-        });
-        
-        if (config._file !== 'microsoft-smtp.json') {
-          return callback(new Error('config._file no soportado: ' + config._file));
-        }
-          
-        microsoftSmtp
-          .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
-          //.then(token => callback(null, token.accessToken, token.expires))
-          //.catch(err => callback(err));
-          .then(token => {
-            console.log('[OAuth2] Token obtenido:', {
-              isString: typeof token === 'string',
-              length: token?.length
-            });
-
-            callback(null, token);
-          })
-          .catch(err => {
-            console.error('[OAuth2] Error:', err.message);
-            callback(err);
-          });
-      };
+      
     }
 
     logger.info(`[mailer] creating transporter for ${key}`);
@@ -86,6 +54,41 @@ class self {
       logger: true,   // agregar aquí
       debug: true,    // agregar aquí
     });
+    
+    if(config.type === 'oauth2') {
+      
+      const smtpOauth = await archivosprivadosSmtp.getConfig(config._domain, config._file);
+      if(smtpOauth === null) {
+        throw new Error('smtpOauth es null, revisar dominio ' + config._domain + ' archivo ' + config._file);
+      }
+      
+      transporter.set("oauth2_provision_cb", (user, renew, cb) => {
+        console.log('[OAuth2] provisionCallback INVOCADO', {
+          user,
+          renew
+        });
+        
+        if (config._file !== 'microsoft-smtp.json') {
+          return callback(new Error('config._file no soportado: ' + config._file));
+        }
+        
+        microsoftSmtp
+          .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
+          //.then(token => callback(null, token.accessToken, token.expires))
+          //.catch(err => callback(err));
+          .then(token => {
+            console.log('[OAuth2] Token obtenido:', {
+              isString: typeof token === 'string',
+              length: token?.length
+            });
+             callback(null, token);
+          })
+          .catch(err => {
+            console.error('[OAuth2] Error:', err.message);
+            callback(err);
+          });
+      });
+    }
     
     await transporter.verify();
     logger.info('transporter OK!');
