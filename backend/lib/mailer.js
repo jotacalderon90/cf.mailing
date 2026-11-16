@@ -88,6 +88,8 @@ class self {
             callback(err);
           });
       });
+      
+      logger.info('oauth2_provision_cb created');
     }
     
     await transporter.verify();
