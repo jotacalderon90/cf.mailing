@@ -74,19 +74,32 @@ class self {
         
         microsoftSmtp
           .getToken(smtpOauth.client_id, smtpOauth.client_secret, smtpOauth.tenant_id)
-          //.then(token => callback(null, token.accessToken, token.expires))
-          //.catch(err => callback(err));
-          .then(token => {
+          .then(token => callback(null, token.accessToken, token.expires))
+          .catch(err => callback(err));
+          /*.then(token => {
             console.log('[OAuth2] Token obtenido:', {
               isString: typeof token === 'string',
               length: token?.length
             });
-             callback(null, token);
+            
+            const payload = JSON.parse(
+              Buffer.from(token.split('.')[1], 'base64url').toString('utf8')
+            );
+
+            console.log('[OAuth2] Token claims:', {
+              aud: payload.aud,
+              roles: payload.roles,
+              tid: payload.tid,
+              appid: payload.appid,
+              exp: new Date(payload.exp * 1000).toISOString()
+            });
+            
+            callback(null, token);
           })
           .catch(err => {
             console.error('[OAuth2] Error:', err.message);
             callback(err);
-          });
+          });*/
       });
       
       logger.info('oauth2_provision_cb created');

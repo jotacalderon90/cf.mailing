@@ -1,5 +1,7 @@
 'use strict';
 
+const logger = require('cl.jotacalderon.cf.framework/lib/log')(__filename);
+
 module.exports = {
   getToken: async function (client_id, client_secret, tenant_id) {
     
@@ -22,6 +24,8 @@ module.exports = {
     if (!res.ok || !data.access_token) {
       throw new Error(JSON.stringify(data));
     }
+    
+    logger.info(data);
     
     return {
       accessToken: data.access_token,
