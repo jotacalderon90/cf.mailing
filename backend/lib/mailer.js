@@ -31,7 +31,7 @@ class self {
       auth.user = config.user;
       auth.pass = config.password;
     
-    } else if(config.type === 'oauth2') {
+    } else if(config._type === 'oauth2') {
       auth.type = 'OAuth2';
       auth.user = config.user;
       
@@ -55,7 +55,7 @@ class self {
       debug: true,    // agregar aquí
     });
     
-    if(config.type === 'oauth2') {
+    if(config._type === 'oauth2') {
       
       const smtpOauth = await archivosprivadosSmtp.getConfig(config._domain, config._file);
       if(smtpOauth === null) {
