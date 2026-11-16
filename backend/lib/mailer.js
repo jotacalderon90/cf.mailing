@@ -62,7 +62,7 @@ class self {
         throw new Error('smtpOauth es null, revisar dominio ' + config._domain + ' archivo ' + config._file);
       }
       
-      transporter.set("oauth2_provision_cb", (user, renew, cb) => {
+      transporter.set("oauth2_provision_cb", (user, renew, callback) => {
         console.log('[OAuth2] provisionCallback INVOCADO', {
           user,
           renew
